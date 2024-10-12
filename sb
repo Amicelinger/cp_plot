@@ -1,0 +1,299 @@
+#import io
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import japanize_matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+#import os
+
+
+#mpl.style.use('seaborn-darkgrid')
+plt.style.use("seaborn-v0_8")
+# グラフのスタイル 
+# https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
+
+# df_cpo = pd.read_csv('cp_order.csv').T
+
+# np.random.seed(0)
+
+cps_orderd = [
+    [0, 36, 159, 5, 46, 4, 0, 0, 0, 0, 0, 0],
+    [292, 0, 13, 87, 48, 0, 0, 0, 0, 0, 0, 0],
+    [285, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0],
+    [118, 214, 0, 0, 1, 62, 0, 0, 0, 0, 0, 0],
+    [20, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+    ]
+
+
+df_cpo = pd.DataFrame(cps_orderd, 
+    columns=['カフカ', '保科', 'レノ', '鳴海', 'ミナ', 'キコル', '伊春', '宗一郎', '功', '10号', 'ハルイチ', '葵'],
+    index=['カフカ', '保科', 'レノ', '鳴海', 'ミナ', 'キコル', '伊春', '宗一郎', '功', '10号', 'ハルイチ', '葵']
+    )
+
+df_c = df_cpo
+a = df_cpo.to_numpy()
+
+latter = a.T
+
+df_latter = pd.DataFrame(data=latter, 
+    columns=['カフカ', '保科', 'レノ', '鳴海', 'ミナ', 'キコル', '伊春', '宗一郎', '功', '10号', 'ハルイチ', '葵'],
+    index=['カフカ', '保科', 'レノ', '鳴海', 'ミナ', 'キコル', '伊春', '宗一郎', '功', '10号', 'ハルイチ', '葵']
+    )
+
+# df_cpo.to_csv('orderdcps.csv')
+
+
+# 合計値の追加
+df_cpo = df_cpo.assign(rows_sum = df_cpo.sum(axis=1, numeric_only=True))
+df_cpo = df_cpo.assign(columns_sum = df_cpo.sum(axis=0, numeric_only=True))
+df_cpo = df_cpo.assign(rc_sum = df_cpo[['rows_sum', 'columns_sum']].sum(axis=1, numeric_only=True))
+# df_cpo = df_cpo.append(df_cpo.sum(numeric_only=True), ignore_index=True)
+# df_cpo.loc['Total'] = df_cpo.sum(numeric_only=True)
+
+# 単独の値を追加 12人
+df_s = df_cpo.assign(single=[357, 1007, 167, 498, 250, 369, 49, 14, 24, 28, 28, 21])
+
+df_s.to_csv('orderdcps2.csv')
+
+colors = ['orangered', 'slateblue', 'royalblue', 'plum', '#ef397e', 'yellow', 'salmon', 'paleturquoise', 'darkkhaki', 'darkslategray', 'mediumseagreen', 'olivedrab']
+
+
+# scatter plot 散布図  # 含まれる二組
+sns.set(font='IPAexGothic')
+fig = plt.figure(figsize=(11, 10), dpi=240, layout="tight")
+ax = fig.add_subplot(111)
+
+# ax = df_s.plot.scatter(x='single', y='rc_sum', alpha=0.7)
+# ax = sns.regplot(data=df_s, x=df_s['single'], y=df_s['rc_sum'])
+
+for i in range(12):
+    ax = plt.scatter(df_s.iloc[i, 15], df_s.iloc[i, 14], color=colors[i], s=75, alpha=0.6, edgecolor='none', label=df_s.index[i])
+plt.plot([0,1006], [0,1006], color='gray', lw=0.6, alpha=0.3)  # x=y line
+
+fontcolor = '#777'
+labelcolor = '#888'
+fontsize = 8
+plt.xlabel('キャラクター', rotation=0, color='#747474', labelpad=12, va='center')
+plt.ylabel('組み合わせ', rotation=0, color='#747474', labelpad=12, va='center')
+plt.legend(loc="upper right", bbox_to_anchor=(1.156, 1.01), labelcolor='#888', edgecolor='none')
+# plt.legend(facecolor='k', labelcolor='w')
+# plt.setp(legend.get_texts(), color='w')
+plt.tight_layout()
+fig.savefig("solocp.png", pad_inches=0.1)
+fig.savefig("solocp.pdf", pad_inches=0.1)
+#plt.show()
+plt.close()
+
+
+## AB+BA の対称行列を作る
+## 順不同 CPs 各キャラ毎の相手の割合
+
+# 初期化
+# df_c0 = df_c.drop(range(len(df_c)))
+# or i in range(len(df_c)):
+#    for j in range(i, len(df_c)):
+#        df_c0.iloc[i, j] = df_c.iloc[i, j] + df_c.iloc[j, i]
+# 
+# df_symme = df_c0 + df_c0.T
+
+
+# NumPy
+# b = np.zeros_like(df_cpo.index, df_cpo.columns)
+b = np.zeros((12, 12), dtype = int)
+# a = df_cpo.to_numpy()
+
+for i in range(12):
+    for j in range(i, 12):
+        b[i, j] = a[i, j] + a[j, i]
+
+# print(b)
+# 上三角行列にしました, 下三角は0
+
+
+# 折り返す. 対称行列にする
+# symme = np.triu(b) + np.triu(b).T - np.diag(b.diagonal())
+symme = b + b.T
+
+
+
+''''''
+## 順不同 グラフの作成
+''''''
+
+# list = b.tolist()
+# 引数の与え方  list[0]
+
+df_pairs = pd.DataFrame(data=symme, 
+    columns=['カフカ', '保科', 'レノ', '鳴海', 'ミナ', 'キコル', '伊春', '宗一郎', '功', '10号', 'ハルイチ', '葵'],
+    index=['カフカ', '保科', 'レノ', '鳴海', 'ミナ', 'キコル', '伊春', '宗一郎', '功', '10号', 'ハルイチ', '葵']
+    )
+
+# print(df_pairs)
+df_pairs.to_csv('cpsym.csv')
+
+
+
+"""グラフの作成"""
+
+## 相手の割合 グラフ
+
+# sort
+
+
+
+
+
+
+sns.set(font='IPAexGothic')
+fig = plt.figure(dpi=230)
+# fig = plt.figure(figsize=(10, 15), dpi=230, layout="tight")
+ax = fig.add_subplot(111)
+plt.gcf().set_size_inches(14, 10)
+plt.rcParams['figure.figsize'] = [15, 10]
+
+## 行の順番を逆順にする  横棒グラフ用
+df_pairs = df_pairs.loc[ ::-1, :]
+
+n_rows, n_cols = df_pairs.shape
+positions = range(n_rows)
+offsets = np.zeros(n_rows, dtype=df_pairs.values.dtype)
+
+
+ax.set_yticks(positions)
+ax.set_yticklabels(df_pairs.index)
+
+
+# 
+for i in range(len(df_pairs.columns)):
+    bar = ax.barh(range(n_rows), df_pairs.iloc[:, i], left=offsets, color=colors[i], height=0.7, linewidth=0.2, alpha=0.7, label=df_s.index[i])
+    offsets += df_pairs.iloc[:, i]
+
+
+fontcolor = '#777'
+labelcolor = '#666'
+fontsize = 8
+plt.axis([0, 1020, -1, len(df_pairs.columns)])
+plt.xlabel('相手の割合', rotation=0, color='#777', labelpad=12, va='center')
+plt.ylabel('キ\nャ\nラ\nク\nタ\n|', rotation=0, color='#777', labelpad=12, va='center')
+plt.legend(loc="upper right", bbox_to_anchor=(1.12, 1.00), edgecolor='none')
+plt.tight_layout()
+fig.savefig("cp_pairs.pdf", pad_inches=0.1)
+fig.savefig("cp_pairs.png", pad_inches=0.1)
+# fig.savefig("cp_pairs.pdf", pad_inches=0.1, facecolor=fig.get_facecolor())
+# plt.show()
+plt.close()
+
+
+
+"""グラフの作成"""
+
+
+
+# 先
+
+sns.set(font='IPAexGothic')
+fig = plt.figure(dpi=230)
+# fig = plt.figure(figsize=(10, 15), dpi=230, layout="tight")
+ax = fig.add_subplot(111)
+plt.gcf().set_size_inches(14, 10)
+plt.rcParams['figure.figsize'] = [15, 10]
+
+## 行の順番を逆順にする  横棒グラフ用
+df_cpo = df_cpo.loc[ ::-1, :]
+
+n_rows, n_cols = df_cpo.shape
+positions = range(n_rows)
+offsets = np.zeros(n_rows, dtype=df_cpo.values.dtype)
+
+
+ax.set_yticks(positions)
+ax.set_yticklabels(df_cpo.index)
+
+
+# 
+for i in range(12):
+    bar = ax.barh(range(n_rows), df_cpo.iloc[:, i], left=offsets, color=colors[i], height=0.7, linewidth=0.2, alpha=0.7, label=df_s.index[i])
+    offsets += df_cpo.iloc[:, i]
+
+
+fontcolor = '#777'
+labelcolor = '#666'
+fontsize = 8
+plt.axis([0, 750, -1, 12])
+plt.xlabel('後方の相手の割合', rotation=0, color='#777', labelpad=12, va='center')
+plt.ylabel('前\n方\nの\nキ\nャ\nラ\nク\nタ\n|', rotation=0, color='#777', labelpad=12, va='center')
+plt.legend(loc="upper right", bbox_to_anchor=(1.12, 1.00), edgecolor='none')
+plt.tight_layout()
+fig.savefig("cp_pairs_orderd_former.pdf", pad_inches=0.1)
+# fig.savefig("cp_pairs.pdf", pad_inches=0.1, facecolor=fig.get_facecolor())
+# plt.show()
+plt.close()
+
+
+
+
+
+# 後
+
+
+sns.set(font='IPAexGothic')
+fig = plt.figure(dpi=230)
+# fig = plt.figure(figsize=(10, 15), dpi=230, layout="tight")
+ax = fig.add_subplot(111)
+plt.gcf().set_size_inches(14, 10)
+plt.rcParams['figure.figsize'] = [15, 10]
+
+## 行の順番を逆順にする  横棒グラフ用
+df_latter = df_latter.loc[ ::-1, :]
+
+n_rows, n_cols = df_latter.shape
+positions = range(n_rows)
+offsets = np.zeros(n_rows, dtype=df_latter.values.dtype)
+
+
+ax.set_yticks(positions)
+ax.set_yticklabels(df_latter.index)
+
+
+# 
+for i in range(len(df_latter.columns)):
+    bar = ax.barh(range(n_rows), df_latter.iloc[:, i], left=offsets, color=colors[i], height=0.7, linewidth=0.2, alpha=0.7, label=df_s.index[i])
+    offsets += df_latter.iloc[:, i]
+
+    # if range(n_rows) > 7:
+    # annotations
+#    for rect in bar:
+#        cx = rect.get_x() + rect.get_width() / 2
+#        cy = rect.get_y() + rect.get_height() / 2
+#        ax.text(cx, cy, df_latter.columns[i], color="k", size=18, ha="center", va="center")
+
+
+fontcolor = '#777'
+labelcolor = '#666'
+fontsize = 8
+plt.axis([0, 750, -1, len(df_latter.columns)])
+plt.xlabel('前方の相手の割合', rotation=0, color='#777', labelpad=12, va='center')
+plt.ylabel('後\n方\nの\nキ\nャ\nラ\nク\nタ\n|', rotation=0, color='#777', labelpad=12, va='center')
+plt.legend(loc="upper right", bbox_to_anchor=(1.12, 1.00), edgecolor='none')
+plt.tight_layout()
+fig.savefig("cp_pairs_orderd_latter.pdf", pad_inches=0.1)
+# fig.savefig("cp_pairs.pdf", pad_inches=0.1, facecolor=fig.get_facecolor())
+# plt.show()
+plt.close()
+
+
+
+''''''
+''''''
+
+
